@@ -269,21 +269,27 @@ namespace adobe_font_extractor_gui
 
         private int CopyFontsFunc()
         {
-            try
+            int folderExists = 0;
+            if (!Directory.Exists(G.outputFolderPath))
             {
-                Directory.GetFiles(G.outputFolderPath);
-            }
-            catch (DirectoryNotFoundException dirEx)
-            {
-                Dispatcher.Invoke(() =>
+                
+                MessageBoxResult result = MessageBox.Show("Output folder not found. Create folder?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Error);
+                switch (result)
                 {
-                    MessageBox.Show("Output folder not found. " + dirEx, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    logBox.UpdateLog("Output folder not found.", Brushes.Red);
-                });
-                return 1;
+                    case MessageBoxResult.Yes:
+                        Directory.CreateDirectory(G.outputFolderPath);
+                        logBox.UpdateLog("Creating folder " + G.outputFolderPath, Brushes.Black);
+                        folderExists = 0;
+                        break;
+                    case MessageBoxResult.No:
+                        MessageBox.Show("Please select a valid output folder.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        logBox.UpdateLog("Output folder not found.", Brushes.Red);
+                        folderExists = 1;
+                        break;
+                }
             }
 
-            if (listFontBox.SelectedItems.Count != 0)
+            if (listFontBox.SelectedItems.Count != 0 && folderExists == 0)
             {
                 foreach (Font font in listFontBox.SelectedItems)
                 {
@@ -304,7 +310,8 @@ namespace adobe_font_extractor_gui
                     }
                 }
                 return 0;
-            } else
+            }
+            else if (listFontBox.SelectedItems.Count != 0)
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -312,6 +319,10 @@ namespace adobe_font_extractor_gui
                     logBox.UpdateLog("Please select some fonts first.", Brushes.Red);
                 });
                 return 1;
+            }
+            else
+            {
+                return 2;
             }
         }
     }
